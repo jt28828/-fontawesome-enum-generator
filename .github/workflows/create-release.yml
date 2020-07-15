@@ -6,15 +6,38 @@ jobs:
     name: Generate_Enums
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Record Time
+        uses: srfrnk/current-time@master
+        with:
+          format: YYYY-MM-DD
+        id: current-time
+      - name: Install Dependencies
+        uses: actions/setup-python@v2
         with:
           python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
           architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
-      - run: python parse.py
-      - uses: actions/checkout@v1
-      - uses: ncipollo/release-action@v1
+      - name: Generate Enums
+        run: |
+          python parse.py
+          zip -r release.zip output/
+      - name: Create Release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          artifacts: "output/*"
+          tag_name: ${{ steps.current-time.outputs.formattedTime }}
+          release_name: ${{ steps.current-time.outputs.formattedTime }}
           body: "All Fontawesome icons, as of the build date"
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Assets
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: ./release.zip
+          asset_name: release.zip
+          asset_content_type: application/zip
