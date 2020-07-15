@@ -2,8 +2,8 @@ name: Release
 on: [workflow_dispatch]
 
 jobs:
-  Generate And Release:
-    name: Generate Enums
+  Generate_And_Release:
+    name: Generate_Enums
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
